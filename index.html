@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paul Marti Musikk</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #e8e2d8;
+  --surface: #f2ede6;
+  --border: #b8b0a4;
+  --text: #1a1a24;
+  --muted: #6a6270;
+  --yellow: #b87a00;
+  --orange: #c04d10;
+  --green: #1a8a58;
+  --pink: #aa1850;
+  --blue: #1260b0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  min-height: 100vh;
+  padding: 40px 16px;
+}
+
+.page { max-width: 820px; margin: 0 auto; }
+
+/* HEADER */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: 3px;
+}
+
+.header h1 {
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text);
+}
+
+.header-tag {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+
+/* CARDS */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3px;
+  margin-bottom: 3px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s, transform 0.2s;
+  position: relative;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--accent);
+  z-index: 1;
+}
+
+.card-top {
+  background: var(--accent);
+  padding: 36px 28px 28px;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.card-top::before {
+  content: attr(data-icon);
+  font-size: 90px;
+  line-height: 1;
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.card-top::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -55deg, transparent, transparent 18px,
+    rgba(255,255,255,0.04) 18px, rgba(255,255,255,0.04) 19px
+  );
+}
+
+.card-num {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(28px, 4vw, 38px);
+  letter-spacing: 1px;
+  color: #fff;
+  line-height: 1.0;
+  position: relative;
+  z-index: 1;
+}
+
+.card-body {
+  padding: 22px 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.65;
+  flex: 1;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.card-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(0,0,0,0.02);
+}
+
+.card-cta::after { content: '→'; font-size: 16px; }
+
+.c1 { --accent: var(--blue); }
+.c2 { --accent: var(--orange); }
+
+/* INFO BAR */
+.infobar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 3px;
+}
+
+.infobar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.infobar-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.infobar-value {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.infobar-sep {
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* FOOTER */
+.footer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer p { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.footer a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); }
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.header { animation: fadeUp 0.35s ease both; }
+.divider { animation: fadeUp 0.35s 0.05s ease both; }
+.section-label { animation: fadeUp 0.35s 0.1s ease both; }
+.card:nth-child(1) { animation: fadeUp 0.35s 0.15s ease both; }
+.card:nth-child(2) { animation: fadeUp 0.35s 0.22s ease both; }
+.infobar { animation: fadeUp 0.35s 0.28s ease both; }
+.footer { animation: fadeUp 0.35s 0.33s ease both; }
+
+@media (max-width: 580px) {
+  .cards { grid-template-columns: 1fr; }
+  .footer { flex-direction: column; }
+  .infobar { flex-direction: column; gap: 12px; }
+  .infobar-sep { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Paul Marti Musikk</h1>
+    <div class="header-tag">Musikk · Ungdomstrinnet</div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="cards">
+
+    <a class="card c1" href="samspillsmetodikk.html">
+      <div class="card-top" data-icon="🎸">
+        <div class="card-num">Ressurs 01</div>
+        <div class="card-title">Samspills&shy;metodikk</div>
+      </div>
+      <div class="card-body">
+        <p class="card-desc">Tre veiledninger som guider elevene fra første lytting til ferdig bandøving – gehørbasert, steg for steg. Inkluderer lyttemetodikk, individuell øving og samspill i band.</p>
+        <div class="card-tags">
+          <span class="tag">Gehør</span>
+          <span class="tag">Samspill</span>
+          <span class="tag">Bandøving</span>
+          <span class="tag">3 veiledninger</span>
+        </div>
+      </div>
+      <div class="card-cta">Åpne oversikt</div>
+    </a>
+
+    <a class="card c2" href="piano-chord-generator.html">
+      <div class="card-top" data-icon="🎹">
+        <div class="card-num">Ressurs 02</div>
+        <div class="card-title">Piano-akkord&shy;generator</div>
+      </div>
+      <div class="card-body">
+        <p class="card-desc">Interaktivt verktøy for å generere og visualisere pianoakkorder. Lag akkorddiagrammer med besifring, voicing og fingersetting – eksporter som PNG.</p>
+        <div class="card-tags">
+          <span class="tag">Piano</span>
+          <span class="tag">Akkorder</span>
+          <span class="tag">Besifring</span>
+          <span class="tag">Interaktivt</span>
+        </div>
+      </div>
+      <div class="card-cta">Åpne generator</div>
+    </a>
+
+  </div>
+
+  <!-- INFO BAR -->
+  <div class="infobar">
+    <div class="infobar-item">
+      <span class="infobar-label">Fag</span>
+      <span class="infobar-value">Musikk</span>
+    </div>
+    <div class="infobar-sep"></div>
+    <div class="infobar-item">
+      <span class="infobar-label">Trinn</span>
+      <span class="infobar-value">Ungdomstrinnet</span>
+    </div>
+    <div class="infobar-sep"></div>
+    <div class="infobar-item">
+      <span class="infobar-label">Ressurser</span>
+      <span class="infobar-value">2 moduler · 4 filer</span>
+    </div>
+    <div class="infobar-sep"></div>
+    <div class="infobar-item">
+      <span class="infobar-label">Lisens</span>
+      <span class="infobar-value">CC BY 4.0</span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>Paul Marti Musikk · Ungdomstrinnet</p>
+    <p>
+      <a href="https://github.com/p4m4rt1" target="_blank" rel="noopener noreferrer">Paul Marti</a>
+      &nbsp;·&nbsp;
+      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+      &nbsp;·&nbsp;
+      Innhold utviklet med hjelp av kunstig intelligens (Claude, Anthropic)
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

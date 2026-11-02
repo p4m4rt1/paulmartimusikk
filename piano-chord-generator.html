@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piano akkorddiagram</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0efe9; color: #222;
+    min-height: 100vh; padding: 28px 16px 60px;
+  }
+  .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:8px; }
+  h1 { font-size:1.15rem; font-weight:600; color:#444; }
+  .lang-btns { display:flex; gap:4px; }
+  .lang-btn { padding:4px 11px; border-radius:4px; border:1px solid #ccc; background:#fff; font-size:0.75rem; cursor:pointer; font-family:inherit; color:#555; }
+  .lang-btn.active { background:#333; color:#fff; border-color:#333; }
+
+  .app { max-width:920px; margin:0 auto; display:flex; flex-direction:column; gap:12px; }
+  .panel { background:#fff; border:1px solid #ddd; border-radius:8px; padding:14px 18px; }
+  .panel-title { font-size:0.67rem; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:#aaa; margin-bottom:10px; }
+
+  .row { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+  .field { display:flex; flex-direction:column; gap:4px; }
+  .field label { font-size:0.71rem; color:#999; }
+
+  input[type=text], select {
+    border:1px solid #ccc; border-radius:5px;
+    padding:6px 9px; font-size:0.88rem; font-family:inherit;
+    background:#fafafa; color:#222;
+  }
+  input[type=text]:focus, select:focus { outline:none; border-color:#888; }
+
+  .toggle-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .toggle-btn {
+    display:flex; align-items:center; gap:6px;
+    padding:5px 12px; border-radius:20px; border:1px solid #ccc;
+    background:#fff; font-size:0.78rem; font-family:inherit;
+    cursor:pointer; color:#555; transition:all 0.12s; user-select:none;
+  }
+  .toggle-btn.on { background:#333; color:#fff; border-color:#333; }
+  .toggle-btn .dot { width:8px; height:8px; border-radius:50%; background:#bbb; transition:background 0.12s; }
+  .toggle-btn.on .dot { background:#aef; }
+
+  .btn { padding:6px 14px; border-radius:5px; border:1px solid #bbb; background:#fff; font-size:0.8rem; font-family:inherit; cursor:pointer; color:#333; transition:background 0.12s; white-space:nowrap; }
+  .btn:hover { background:#f0f0f0; }
+  .btn-primary { background:#333; color:#fff; border-color:#333; }
+  .btn-primary:hover { background:#555; }
+
+  /* finger table */
+  table { border-collapse:collapse; width:100%; font-size:0.82rem; }
+  th { text-align:left; font-size:0.67rem; letter-spacing:0.1em; font-weight:700; color:#aaa; text-transform:uppercase; padding:0 8px 7px 0; }
+  td { padding:3px 8px 3px 0; vertical-align:middle; }
+  td select { font-size:0.8rem; padding:4px 6px; }
+  .note-cell { font-weight:600; color:#333; min-width:44px; }
+
+  /* code panel */
+  .code-box {
+    background:#f7f7f5; border:1px solid #ddd; border-radius:6px;
+    padding:10px 14px; font-family:'Courier New',monospace; font-size:0.8rem;
+    color:#555; word-break:break-all; line-height:1.5;
+  }
+  .code-row { display:flex; gap:8px; align-items:flex-start; margin-top:10px; }
+  .code-input { flex:1; font-family:'Courier New',monospace; font-size:0.8rem; }
+
+  /* preview */
+  .preview-panel { background:#fff; border:1px solid #ddd; border-radius:8px; padding:20px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  #diagram { display:block; max-width:100%; cursor:crosshair; border-radius:4px; }
+  .dl-row { display:flex; gap:8px; }
+  .hint { font-size:0.75rem; color:#bbb; font-style:italic; }
+
+  .copy-flash { color:#22c55e !important; transition:color 0.3s; }
+
+  /* footer */
+.footer {background: #ffff; border: 1px solid #ddd; 
+  border-radius:8px; color:#aaa; font-size:0.75rem; 
+  font-weight:400; font-family:inherit; text-transform:uppercase; 
+  padding:20px; display:flex; flex-direction:column; align-items:left; 
+  gap:14px; }
+
+.copyright p { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+      <a href="index.html" style="font-size:0.75rem; color:#888; text-decoration:none; border-bottom:1px solid #ccc; font-family:'Segoe UI',Arial,sans-serif;">← Tilbake til hovedside</a>
+      <h1 id="appTitle">Piano akkorddiagram</h1>
+    </div>
+    <div class="lang-btns">
+      <button class="lang-btn active" onclick="setLang('no')">NO</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+
+  <!-- Chord name + presets -->
+  <div class="panel">
+    <div class="panel-title" id="t_chordNameTitle">Akkordnavn</div>
+    <div class="row">
+      <div class="field">
+        <label id="t_chordNameLabel">Vises over klaviaturet</label>
+        <input type="text" id="chordName" value="Gm" style="width:120px">
+      </div>
+      <div class="field">
+        <label id="t_presetLabel">Velg akkord (forslag)</label>
+        <select id="presetSelect" onchange="applyPreset()" style="width:200px">
+          <option value="">—</option>
+        </select>
+      </div>
+      <div class="field">
+        <label id="t_inversionLabel">Omvending</label>
+        <select id="inversionSelect" onchange="applyPreset()" style="width:150px">
+          <option value="0">Grunnstilling</option>
+          <option value="1">1. omvending</option>
+          <option value="2">2. omvending</option>
+        </select>
+      </div>
+      <div class="field">
+        <label id="t_voicingLabel">Voicing</label>
+        <select id="voicingSelect" onchange="applyPreset()" style="width:150px">
+          <option value="close">Tett</option>
+          <option value="open">Spredt</option>
+          <option value="drop2">Drop 2</option>
+          <option value="shell">Shell</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview -->
+  <div class="preview-panel">
+    <div class="hint" id="t_canvasHint">↓ Klikk direkte på tangentene for å markere/fjerne</div>
+    <canvas id="diagram"></canvas>
+    <div class="dl-row">
+      <button class="btn btn-primary" onclick="updateCode();render();" id="t_refreshBtn">↻ Oppdater</button>
+      <button class="btn" onclick="downloadPNG()" id="t_saveBtn">↓ Lagre PNG</button>
+      <button class="btn" id="copyImgBtn" onclick="copyImageToClipboard()">⎘ Kopier bilde</button>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="panel">
+    <div class="panel-title" id="t_settingsTitle">Innstillinger</div>
+    <div class="row" style="margin-bottom:12px">
+      <div class="field">
+        <label id="t_startOctLabel">Startoktav</label>
+        <select id="startOct">
+          <option value="2">2</option><option value="3" selected>3</option>
+          <option value="4">4</option><option value="5">5</option>
+        </select>
+      </div>
+      <div class="field">
+        <label id="t_numOctLabel">Antall oktaver</label>
+        <select id="numOct">
+          <option value="1">1</option><option value="2" selected>2</option>
+          <option value="3">3</option><option value="4">4</option>
+        </select>
+      </div>
+      <div class="field">
+        <label id="t_startNoteLabel">Starttone</label>
+        <select id="startNote">
+          <option value="C" selected>C</option>
+          <option value="C#">C♯</option>
+          <option value="D">D</option>
+          <option value="D#">D♯</option>
+          <option value="E">E</option>
+          <option value="F">F</option>
+          <option value="F#">F♯</option>
+          <option value="G">G</option>
+          <option value="G#">G♯</option>
+          <option value="A">A</option>
+          <option value="A#">A♯</option>
+          <option value="B">B</option>
+        </select>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <button class="toggle-btn" id="togBH" onclick="toggleOpt('bh')">
+        <span class="dot"></span> <span id="t_togBH">B → H</span>
+      </button>
+      <button class="toggle-btn" id="togFlat" onclick="toggleOpt('flat')">
+        <span class="dot"></span> <span id="t_togFlat"># → b</span>
+      </button>
+      <button class="toggle-btn" id="togOct" onclick="toggleOpt('oct')">
+        <span class="dot"></span> <span id="t_togOct">Oktavtall</span>
+      </button>
+      <button class="toggle-btn on" id="togNames" onclick="toggleOpt('names')">
+        <span class="dot"></span> <span id="t_togNames">Notenavn</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Fingering -->
+  <div class="panel">
+    <div class="panel-title" id="t_fingerTitle">Fingersetting</div>
+    <div id="fingerArea"><div class="hint" id="t_fingerHint">Klikk på tangentene i bildet nedenfor for å markere dem.</div></div>
+  </div>
+
+  <!-- Code -->
+  <div class="panel">
+    <div class="panel-title" id="t_codeTitle">Akkordkode — lagre og gjenskape</div>
+    <div class="code-box" id="codeOut">—</div>
+    <div class="code-row">
+      <button class="btn" id="copyBtn" onclick="copyCode()" style="white-space:nowrap">Kopier</button>
+      <input type="text" class="code-input" id="codeIn" placeholder="Lim inn kode her for å gjenopprette…">
+      <button class="btn btn-primary" onclick="loadCode()" id="t_loadBtn">Last inn</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p><a href="index.html" style="color:var(--muted); text-decoration:none; border-bottom: 1px solid var(--border);">← Tilbake til hovedside</a> &nbsp;·&nbsp; Musikk · Ungdomstrinnet · Piano akkorddiagram</p>
+    <p>
+      <a href="https://github.com/p4m4rt1" target="_blank" rel="noopener noreferrer">Paul Marti</a>
+      &nbsp;·&nbsp;
+      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+      &nbsp;·&nbsp;
+      Innhold utviklet med hjelp av kunstig intelligens (Claude, Anthropic)
+    </p>
+    
+  </div>
+</div>
+
+<script>
+// ─── i18n ────────────────────────────────────────────────────────────────────
+const STRINGS = {
+  no: {
+    appTitle:'Piano akkorddiagram', chordNameTitle:'Akkordnavn',
+    chordNameLabel:'Vises over klaviaturet', presetLabel:'Velg akkord (forslag)',
+    settingsTitle:'Innstillinger', startOctLabel:'Startoktav', numOctLabel:'Antall oktaver', startNoteLabel:'Starttone',
+    togBH:'B → H', togFlat:'# → b', togOct:'Oktavtall', togNames:'Notenavn',
+    fingerTitle:'Fingersetting', fingerHint:'Klikk på tangentene i bildet nedenfor for å markere dem.',
+    canvasHint:'↓ Klikk direkte på tangentene for å markere/fjerne',
+    refreshBtn:'↻ Oppdater', saveBtn:'↓ Lagre PNG',
+    codeTitle:'Akkordkode — lagre og gjenskape',
+    copyBtn:'Kopier', loadBtn:'Last inn',
+    codeInputPlaceholder:'Lim inn kode her for å gjenopprette…',
+    colNote:'Note', colHand:'Hånd', colFinger:'Finger',
+    handRH:'HH', handLH:'VH', handNone:'—', fingerNone:'—',
+    inversionLabel:'Omvending', voicingLabel:'Voicing',
+    presetGroups: {
+      'Durtrekklanger':'major','Molltrekklanger':'minor',
+      'Septimakkorder':'seventh','Andre':'other'
+    }
+  },
+  en: {
+    appTitle:'Piano Chord Diagram', chordNameTitle:'Chord Name',
+    chordNameLabel:'Shown above the keyboard', presetLabel:'Select chord (suggestions)',
+    settingsTitle:'Settings', startOctLabel:'Start octave', numOctLabel:'Number of octaves', startNoteLabel:'Start note',
+    togBH:'B → H', togFlat:'# → b', togOct:'Octave numbers', togNames:'Note names',
+    fingerTitle:'Fingering', fingerHint:'Click the keys in the image below to highlight them.',
+    canvasHint:'↓ Click directly on keys to highlight/remove',
+    refreshBtn:'↻ Refresh', saveBtn:'↓ Save PNG',
+    codeTitle:'Chord Code — save and restore',
+    copyBtn:'Copy', loadBtn:'Load',
+    codeInputPlaceholder:'Paste code here to restore…',
+    colNote:'Note', colHand:'Hand', colFinger:'Finger',
+    handRH:'RH', handLH:'LH', handNone:'—', fingerNone:'—',
+    inversionLabel:'Omvending', voicingLabel:'Voicing',
+    inversionLabel:'Inversion', voicingLabel:'Voicing',
+    presetGroups: {
+      'Major triads':'major','Minor triads':'minor',
+      'Seventh chords':'seventh','Other':'other'
+    }
+  }
+};
+let lang = 'no';
+const t = k => STRINGS[lang][k] || k;
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent===l.toUpperCase()));
+  applyTranslations();
+  buildPresets();
+  updateFingerTable();
+  updateCode();
+  render();
+}
+
+function applyTranslations() {
+  const ids = ['appTitle','chordNameTitle','chordNameLabel','presetLabel','inversionLabel','voicingLabel','settingsTitle',
+    'startOctLabel','numOctLabel','startNoteLabel','togBH','togFlat','togOct','togNames','fingerTitle',
+    'fingerHint','canvasHint','refreshBtn','saveBtn','codeTitle','copyBtn','loadBtn'];
+  ids.forEach(id => {
+    const el = document.getElementById('t_'+id) || document.getElementById(id);
+    if (el) el.textContent = t(id.replace('t_',''));
+  });
+  document.getElementById('codeIn').placeholder = t('codeInputPlaceholder');
+}
+
+// ─── Chord presets ────────────────────────────────────────────────────────────
+// intervals: semitones from root; rh/lh: arrays of {note,octave}
+const ROOTS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const ALL_NOTES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const FLAT_MAP = {'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb'};
+const isBlk = n => n.includes('#');
+
+const CHORD_DEFS = [
+  // [label_suffix, intervals, group]
+  ['', [0,4,7], 'major'],
+  ['m', [0,3,7], 'minor'],
+  ['dim', [0,3,6], 'other'],
+  ['aug', [0,4,8], 'other'],
+  ['sus2', [0,2,7], 'other'],
+  ['sus4', [0,5,7], 'other'],
+  ['maj7', [0,4,7,11], 'seventh'],
+  ['m7', [0,3,7,10], 'seventh'],
+  ['7', [0,4,7,10], 'seventh'],
+  ['dim7', [0,3,6,9], 'seventh'],
+  ['m7b5', [0,3,6,10], 'seventh'],
+  ['6', [0,4,7,9], 'other'],
+  ['m6', [0,3,7,9], 'other'],
+  ['add9', [0,4,7,14], 'other'],
+];
+
+function buildPresets() {
+  const sel = document.getElementById('presetSelect');
+  sel.innerHTML = '<option value="">—</option>';
+  const groups = {};
+  ROOTS.forEach(root => {
+    CHORD_DEFS.forEach(([suf, ivs, grp]) => {
+      if (!groups[grp]) groups[grp] = [];
+      groups[grp].push({root, suf, ivs});
+    });
+  });
+  const groupLabels = Object.entries(t('presetGroups'));
+  groupLabels.forEach(([label, grpKey]) => {
+    const og = document.createElement('optgroup');
+    og.label = label;
+    (groups[grpKey]||[]).forEach(({root, suf, ivs}) => {
+      const o = document.createElement('option');
+      const name = root + suf;
+      o.value = JSON.stringify({root, suf, ivs});
+      o.textContent = name;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+}
+
+// ─── Voicing helpers ─────────────────────────────────────────────────────────
+// Returns array of {note, octave} for a chord given root, intervals, inversion, voicing
+function buildVoicing(root, ivs) {
+  const rootIdx = ALL_NOTES.indexOf(root);
+  const inv     = parseInt(document.getElementById('inversionSelect').value) || 0;
+  const voicing = document.getElementById('voicingSelect').value || 'close';
+
+  // Rotate intervals for inversion
+  let rotated = [...ivs];
+  for (let i = 0; i < inv; i++) {
+    const first = rotated.shift();
+    rotated.push(first + 12);
+  }
+  // Normalize so first interval is 0
+  const base = rotated[0];
+  rotated = rotated.map(v => v - base);
+
+  // Determine whether root is "high" (F# and above → use 3 octaves)
+  const rootIsHigh = rootIdx >= 6; // F# and above
+
+  // RH base octave
+  const rhOct = 4;
+
+  let notes = [];
+
+  if (voicing === 'close') {
+    // Tett: all notes in close position
+    notes = rotated.map(iv => {
+      const absNote = rootIdx + base + iv;
+      return { note: ALL_NOTES[((absNote % 12) + 12) % 12], octave: rhOct + Math.floor(absNote / 12) };
+    });
+  } else if (voicing === 'open') {
+    // Spredt: alternate notes up an octave (every other note raised)
+    notes = rotated.map((iv, i) => {
+      const absNote = rootIdx + base + iv + (i % 2 === 1 ? 12 : 0);
+      return { note: ALL_NOTES[((absNote % 12) + 12) % 12], octave: rhOct + Math.floor(absNote / 12) };
+    });
+  } else if (voicing === 'drop2') {
+    // Drop 2: second-from-top dropped an octave
+    const arr = rotated.map((iv, i) => {
+      const absNote = rootIdx + base + iv;
+      return { note: ALL_NOTES[((absNote % 12) + 12) % 12], octave: rhOct + Math.floor(absNote / 12), absNote };
+    });
+    if (arr.length >= 3) {
+      const drop = arr.length - 2; // second from top
+      arr[drop].octave -= 1;
+      arr[drop].absNote -= 12;
+      arr.sort((a,b) => a.absNote - b.absNote);
+    }
+    notes = arr;
+  } else if (voicing === 'shell') {
+    // Shell: root + 3rd/4th + 7th (skip 5th)
+    const keep = ivs.length >= 4 ? [0, 1, 3] : [0, ivs.length-1]; // root, 3rd, 7th
+    const shellIvs = rotated.filter((_, i) => keep.includes(i));
+    notes = shellIvs.map(iv => {
+      const absNote = rootIdx + base + iv;
+      return { note: ALL_NOTES[((absNote % 12) + 12) % 12], octave: rhOct + Math.floor(absNote / 12) };
+    });
+  }
+
+  // LH: root one octave below lowest RH note
+  const lhOct = 3;
+  const lhNote = ALL_NOTES[rootIdx];
+
+  // Auto octave range: high roots need 3 octaves
+  const maxOct = Math.max(...notes.map(n => n.octave));
+  const needThree = rootIsHigh || maxOct >= 6;
+  const numOct = needThree ? 3 : 2;
+  document.getElementById('startOct').value = '3';
+  document.getElementById('numOct').value = String(numOct);
+
+  return { rhNotes: notes, lhNote, lhOct };
+}
+
+function applyPreset() {
+  const val = document.getElementById('presetSelect').value;
+  if (!val) return;
+  const {root, suf, ivs} = JSON.parse(val);
+  const chordName = root + suf;
+  document.getElementById('chordName').value = chordName;
+
+  selectedKeys = [];
+  fingerData = {};
+
+  const { rhNotes, lhNote, lhOct } = buildVoicing(root, ivs);
+
+  rhNotes.forEach(({note, octave}) => {
+    selectedKeys.push({note, octave});
+    fingerData[kid(note,octave)] = {finger:'', hand: t('handRH')};
+  });
+
+  // LH root
+  selectedKeys.push({note: lhNote, octave: lhOct});
+  fingerData[kid(lhNote, lhOct)] = {finger:'', hand: t('handLH')};
+
+  updateFingerTable();
+  updateCode();
+  render();
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let selectedKeys = [];
+let fingerData = {};
+let opts = {bh:false, flat:false, oct:false, names:true};
+
+const kid = (n,o) => n+o;
+
+function noteName(n) {
+  let name = n;
+  if (opts.flat && FLAT_MAP[n]) name = FLAT_MAP[n];
+  if (opts.bh) name = name.replace(/^B$/, 'H').replace(/^Bb$/, 'Hb');
+  return name.replace('#','♯').replace('b','♭');
+}
+function noteLabel(n,o) {
+  return noteName(n) + (opts.oct ? o : '');
+}
+
+function toggleOpt(key) {
+  opts[key] = !opts[key];
+  const id = 'tog'+key.charAt(0).toUpperCase()+key.slice(1);
+  document.getElementById(id).classList.toggle('on', opts[key]);
+  updateFingerTable();
+  updateCode();
+  render();
+}
+
+// ─── Piano layout constants ───────────────────────────────────────────────────
+const WKW=34, WKH=110, BKW=21, BKH=68, PAD=20, TOP=58, BOT=44;
+
+// Black key center positions in white-key-width units from octave start
+// C# centered over boundary between C(0) and D(1) → index 1, D# → 2, F# → 4, G# → 5, A# → 6
+const BK_OFF = {'C#':1,'D#':2,'F#':4,'G#':5,'A#':6};
+
+let keyLayout = [];
+
+function buildKeys() {
+  const start          = +document.getElementById('startOct').value;
+  const num            = +document.getElementById('numOct').value;
+  const startNote      = document.getElementById('startNote').value;
+  const startNoteIdx   = ALL_NOTES.indexOf(startNote);
+  const keys           = [];
+
+  // Build note list from startNote in 'start' octave to startNote in 'start+num' octave
+  for (let o = start; o <= start + num; o++) {
+    ALL_NOTES.forEach((n, ni) => {
+      if (o === start     && ni < startNoteIdx) return;
+      if (o === start+num && ni > startNoteIdx) return;
+      keys.push({note: n, octave: o, black: isBlk(n), x: null});
+    });
+  }
+
+  // Assign x to white keys sequentially
+  let wi = 0;
+  keys.forEach(k => { if (!k.black) { k.x = PAD + wi++ * WKW; } });
+
+  // Assign x to black keys: center = prevWhite.x + WKW, left edge = center - BKW/2
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i];
+    if (!k.black) continue;
+    // Find nearest white key to the left in our array
+    let prev = null;
+    for (let j = i - 1; j >= 0; j--) { if (!keys[j].black) { prev = keys[j]; break; } }
+    // Find nearest white key to the right
+    let next = null;
+    for (let j = i + 1; j < keys.length; j++) { if (!keys[j].black) { next = keys[j]; break; } }
+
+    if (prev) {
+      // Center = right edge of prev white key
+      k.x = prev.x + WKW - BKW / 2;
+    } else if (next) {
+      // Black key is the very first key (startNote is a black key)
+      k.x = next.x - WKW + WKW / 2 - BKW / 2;
+    }
+  }
+  keyLayout = keys;
+}
+
+// ─── Hit test ─────────────────────────────────────────────────────────────────
+function hitTest(mx, my) {
+  for (const k of keyLayout)
+    if (k.black && mx>=k.x && mx<=k.x+BKW && my>=TOP && my<=TOP+BKH) return k;
+  for (const k of keyLayout)
+    if (!k.black && mx>=k.x && mx<=k.x+WKW && my>=TOP && my<=TOP+WKH) return k;
+  return null;
+}
+
+document.getElementById('diagram').addEventListener('click', function(e) {
+  const rect = this.getBoundingClientRect();
+  const scaleX = (this.width / (window.devicePixelRatio||1)) / rect.width;
+  const scaleY = (this.height / (window.devicePixelRatio||1)) / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top)  * scaleY;
+  const k = hitTest(mx, my);
+  if (!k) return;
+  const id = kid(k.note, k.octave);
+  const idx = selectedKeys.findIndex(s => s.note===k.note && s.octave===k.octave);
+  if (idx===-1) {
+    selectedKeys.push({note:k.note, octave:k.octave});
+    fingerData[id] = {finger:'', hand: t('handRH')};
+  } else {
+    selectedKeys.splice(idx,1);
+    delete fingerData[id];
+  }
+  updateFingerTable();
+  updateCode();
+  render();
+});
+
+// ─── Finger table ─────────────────────────────────────────────────────────────
+function updateFingerTable() {
+  const area = document.getElementById('fingerArea');
+  const sorted = [...selectedKeys].sort((a,b)=>
+    a.octave!==b.octave ? a.octave-b.octave : ALL_NOTES.indexOf(a.note)-ALL_NOTES.indexOf(b.note));
+  if (!sorted.length) {
+    area.innerHTML = `<div class="hint">${t('fingerHint')}</div>`; return;
+  }
+  const handOpts = [t('handRH'), t('handLH'), t('handNone')];
+  const tbl = document.createElement('table');
+  const hr = tbl.createTHead().insertRow();
+  [t('colNote'), t('colHand'), t('colFinger')].forEach(h => {
+    const th=document.createElement('th'); th.textContent=h; hr.appendChild(th);
+  });
+  const tb = tbl.createTBody();
+  sorted.forEach(k => {
+    const id = kid(k.note, k.octave);
+    if (!fingerData[id]) fingerData[id]={finger:'', hand:t('handRH')};
+    const d = fingerData[id];
+    const tr = tb.insertRow();
+
+    const tdN=tr.insertCell(); tdN.className='note-cell';
+    tdN.textContent = noteLabel(k.note, k.octave);
+
+    const tdH=tr.insertCell();
+    const hs=document.createElement('select');
+    handOpts.forEach(v=>{
+      const o=document.createElement('option'); o.value=v; o.textContent=v;
+      if(v===d.hand) o.selected=true; hs.appendChild(o);
+    });
+    hs.onchange=()=>{ fingerData[id].hand=hs.value; updateCode(); render(); };
+    tdH.appendChild(hs);
+
+    const tdF=tr.insertCell();
+    const fs=document.createElement('select');
+    [t('fingerNone'),'1','2','3','4','5'].forEach(v=>{
+      const o=document.createElement('option'); o.value=v; o.textContent=v;
+      if(v===(d.finger||t('fingerNone'))) o.selected=true; fs.appendChild(o);
+    });
+    fs.onchange=()=>{ fingerData[id].finger=fs.value===t('fingerNone')?'':fs.value; updateCode(); render(); };
+    tdF.appendChild(fs);
+  });
+  area.innerHTML=''; area.appendChild(tbl);
+}
+
+// ─── Code generation / loading ────────────────────────────────────────────────
+function buildState() {
+  return {
+    v:1,
+    name: document.getElementById('chordName').value,
+    startOct: +document.getElementById('startOct').value,
+    numOct: +document.getElementById('numOct').value,
+    startNote: document.getElementById('startNote').value,
+    opts: {...opts},
+    lang,
+    keys: selectedKeys.map(k => {
+      const id=kid(k.note,k.octave);
+      const d=fingerData[id]||{};
+      return {n:k.note, o:k.octave, f:d.finger||'', h:d.hand||''};
+    })
+  };
+}
+
+function updateCode() {
+  try {
+    const state = buildState();
+    document.getElementById('codeOut').textContent = JSON.stringify(state);
+  } catch(e) {
+    document.getElementById('codeOut').textContent = '(feil: ' + e.message + ')';
+  }
+}
+
+function copyCode() {
+  const code = document.getElementById('codeOut').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓';
+    btn.classList.add('copy-flash');
+    setTimeout(()=>{ btn.textContent=t('copyBtn'); btn.classList.remove('copy-flash'); },1500);
+  });
+}
+
+function loadCode() {
+  const raw = document.getElementById('codeIn').value.trim();
+  if (!raw) return;
+  try {
+    const s = JSON.parse(raw);
+    if (!s || !s.keys) throw new Error('bad format');
+    document.getElementById('chordName').value = s.name || '';
+    document.getElementById('startOct').value = s.startOct || 3;
+    document.getElementById('numOct').value   = s.numOct  || 2;
+    document.getElementById('startNote').value = s.startNote || 'C';
+    opts = {...opts, ...s.opts};
+    const togIds = {bh:'togBH', flat:'togFlat', oct:'togOct', names:'togNames'};
+    ['bh','flat','oct','names'].forEach(k => {
+      const el = document.getElementById(togIds[k]);
+      if (el) el.classList.toggle('on', opts[k]);
+    });
+    if (s.lang && s.lang !== lang) setLang(s.lang);
+    selectedKeys = []; fingerData = {};
+    (s.keys||[]).forEach(({n,o,f,h})=>{
+      selectedKeys.push({note:n, octave:o});
+      fingerData[kid(n,o)] = {finger:f, hand:h};
+    });
+    updateFingerTable();
+    updateCode();
+    render();
+    document.getElementById('codeIn').value='';
+  } catch(e) {
+    alert('Ugyldig kode / Invalid code');
+  }
+}
+
+// ─── Canvas render ────────────────────────────────────────────────────────────
+function render(targetCanvas, exportScale) {
+  buildKeys();
+  const name = document.getElementById('chordName').value.trim();
+  const num  = +document.getElementById('numOct').value;
+  const totalWhite = num*7+1;
+  const W = PAD*2 + totalWhite*WKW;
+  const H = TOP + WKH + BOT;
+  const scale = exportScale || window.devicePixelRatio || 1;
+  const cv = targetCanvas || document.getElementById('diagram');
+  cv.width=W*scale; cv.height=H*scale;
+  if (!targetCanvas) { cv.style.width=W+'px'; cv.style.height=H+'px'; }
+  const ctx=cv.getContext('2d');
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
+
+  // Chord name
+  if (name) {
+    ctx.font='bold 18px Georgia, serif';
+    const tw=ctx.measureText(name).width;
+    const bw=tw+30,bh=30,bx=W/2-bw/2,by=10;
+    ctx.fillStyle='#f7f7f5'; ctx.strokeStyle='#ccc'; ctx.lineWidth=1;
+    rrect(ctx,bx,by,bw,bh,5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#111'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(name, W/2, by+bh/2);
+  }
+
+  const isSel = k => selectedKeys.some(s=>s.note===k.note&&s.octave===k.octave);
+
+  // White keys
+  keyLayout.filter(k=>!k.black).forEach(k=>{
+    const sel=isSel(k);
+    ctx.fillStyle=sel?'#fee2e2':'#ffffff';
+    ctx.strokeStyle='#c0c0b8'; ctx.lineWidth=1;
+    rrect(ctx,k.x+0.5,TOP,WKW-1,WKH,[0,0,4,4]); ctx.fill(); ctx.stroke();
+    if (sel) drawDot(ctx,k,k.x+WKW/2,TOP+WKH-18,13,false);
+    if (opts.names) {
+      ctx.fillStyle=sel?'#bbb':'#ccc'; ctx.font='8px Arial';
+      ctx.textAlign='center'; ctx.textBaseline='bottom';
+      ctx.fillText(noteLabel(k.note,k.octave), k.x+WKW/2, TOP+WKH-2);
+    }
+  });
+
+  // Black keys
+  keyLayout.filter(k=>k.black).forEach(k=>{
+    const sel=isSel(k);
+    ctx.fillStyle=sel?'#b91c1c':'#222';
+    ctx.strokeStyle='#000'; ctx.lineWidth=1;
+    rrect(ctx,k.x,TOP,BKW,BKH,[0,0,3,3]); ctx.fill(); ctx.stroke();
+    if (sel) drawDot(ctx,k,k.x+BKW/2,TOP+BKH-12,9,true);
+    if (opts.names && !sel) {
+      ctx.fillStyle='#bbb'; ctx.font='bold 7px Arial';
+      ctx.textAlign='center'; ctx.textBaseline='bottom';
+      ctx.fillText(noteLabel(k.note,k.octave), k.x+BKW/2, TOP+BKH-2);
+    }
+  });
+
+  // Octave dividers
+  const start=+document.getElementById('startOct').value;
+  for(let o=start+1;o<start+num;o++){
+    const xi=PAD+(o-start)*7*WKW;
+    ctx.strokeStyle='#e4e4de'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(xi,TOP); ctx.lineTo(xi,TOP+WKH); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Finger labels below keyboard
+  const yF=TOP+WKH+7;
+  ctx.font='10px Arial'; ctx.textBaseline='top';
+  selectedKeys.forEach(k=>{
+    const id=kid(k.note,k.octave);
+    const d=fingerData[id]||{};
+    const kObj=keyLayout.find(kk=>kk.note===k.note&&kk.octave===k.octave);
+    if(!kObj) return;
+    const parts=[];
+    if(d.hand&&d.hand!==t('handNone')) parts.push(d.hand);
+    if(d.finger) parts.push(d.finger);
+    if(!parts.length) return;
+    const cx=kObj.black?kObj.x+BKW/2:kObj.x+WKW/2;
+    ctx.fillStyle='#555'; ctx.textAlign='center';
+    ctx.fillText(parts.join(' '), cx, yF);
+  });
+
+  ctx.strokeStyle='#e0dfd8'; ctx.lineWidth=1; ctx.strokeRect(0.5,0.5,W-1,H-1);
+  updateCode();
+}
+
+function drawDot(ctx,k,cx,cy,r) {
+  const id=kid(k.note,k.octave);
+  const d=fingerData[id]||{};
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle='#ef4444'; ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+  const label=d.finger?d.finger:noteName(k.note);
+  ctx.fillStyle='#fff';
+  ctx.font=`bold ${r>11?10:8}px Arial`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(label,cx,cy);
+}
+
+function rrect(ctx,x,y,w,h,r){
+  if(typeof r==='number') r=[r,r,r,r];
+  ctx.beginPath();
+  ctx.moveTo(x+r[0],y); ctx.lineTo(x+w-r[1],y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r[1]);
+  ctx.lineTo(x+w,y+h-r[2]);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r[2],y+h);
+  ctx.lineTo(x+r[3],y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r[3]);
+  ctx.lineTo(x,y+r[0]);
+  ctx.quadraticCurveTo(x,y,x+r[0],y);
+  ctx.closePath();
+}
+
+function downloadPNG(){
+  const name=(document.getElementById('chordName').value.trim()||'akkord').replace(/[^a-zA-Z0-9_♯♭]/g,'_');
+  // Render to offscreen canvas at 3× for high-resolution export
+  const offscreen = document.createElement('canvas');
+  render(offscreen, 3);
+  const a=document.createElement('a');
+  a.href=offscreen.toDataURL('image/png');
+  a.download=name+'_akkord.png'; a.click();
+}
+
+function copyImageToClipboard(){
+  const btn = document.getElementById('copyImgBtn');
+  const offscreen = document.createElement('canvas');
+  render(offscreen, 3);
+  offscreen.toBlob(blob => {
+    navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
+      .then(() => {
+        btn.textContent = '✓ Kopiert!';
+        setTimeout(() => { btn.textContent = '⎘ Kopier bilde'; }, 2000);
+      })
+      .catch(() => {
+        btn.textContent = '✗ Ikke støttet';
+        setTimeout(() => { btn.textContent = '⎘ Kopier bilde'; }, 2000);
+      });
+  }, 'image/png');
+}
+
+// Live updates
+document.getElementById('chordName').addEventListener('input', ()=>{ updateCode(); render(); });
+['startOct','numOct','startNote'].forEach(id =>
+  document.getElementById(id).addEventListener('change', ()=>{ updateCode(); render(); })
+);
+
+// Init
+applyTranslations();
+buildPresets();
+updateCode();
+render();
+</script>
+</body>
+</html>

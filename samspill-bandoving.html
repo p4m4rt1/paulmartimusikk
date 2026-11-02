@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Samspill – Bandøvingen</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #e8e2d8;
+  --surface: #f2ede6;
+  --border: #b8b0a4;
+  --text: #1a1a24;
+  --muted: #6a6270;
+  --yellow: #b87a00;
+  --orange: #c04d10;
+  --green: #1a8a58;
+  --pink: #aa1850;
+  --blue: #1260b0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  min-height: 100vh;
+  padding: 32px 16px;
+}
+
+.poster {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+/* ── HEADER ── */
+.header {
+  text-align: center;
+  padding: 48px 24px 36px;
+  position: relative;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  margin-bottom: 3px;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 20px,
+    rgba(170,24,80,0.04) 20px,
+    rgba(170,24,80,0.04) 21px
+  );
+}
+
+.header-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--pink);
+  border: 1px solid var(--pink);
+  padding: 4px 14px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(48px, 10vw, 82px);
+  line-height: 0.9;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.header h1 span { color: var(--pink); display: block; }
+
+.header p {
+  font-size: 15px;
+  color: var(--muted);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+  position: relative;
+}
+
+/* ── PHASE STRIP ── */
+.phasestrip {
+  display: flex;
+  background: var(--text);
+  margin-bottom: 3px;
+}
+
+.phase {
+  flex: 1;
+  padding: 10px 14px;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.phase:last-child { border-right: none; }
+
+.phase-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.phase-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+}
+
+/* ── RECIPE STEPS ── */
+.recipe { margin-bottom: 3px; }
+
+.recipe-step {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.recipe-step:last-child { border-bottom: 1px solid var(--border); }
+.recipe-step:hover { border-color: var(--step-color); z-index: 1; }
+
+.recipe-step-num {
+  background: var(--step-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: var(--surface);
+  flex-shrink: 0;
+  min-height: 80px;
+}
+
+.recipe-step-body { padding: 16px 20px; }
+
+.recipe-step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+
+.recipe-step-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: var(--step-color);
+  line-height: 1;
+}
+
+.recipe-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--step-color);
+  color: var(--step-color);
+}
+
+.recipe-step-desc {
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.65;
+  margin-bottom: 8px;
+}
+
+.recipe-step-tip {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.5;
+  padding-left: 10px;
+  border-left: 2px solid var(--border);
+  margin-top: 6px;
+}
+
+.s1 { --step-color: var(--pink); }
+.s2 { --step-color: var(--orange); }
+.s3 { --step-color: var(--blue); }
+.s4 { --step-color: var(--green); }
+.s5 { --step-color: var(--yellow); }
+.s6 { --step-color: var(--pink); }
+.s7 { --step-color: var(--orange); }
+
+/* ── ROLES GRID ── */
+.roles-section {
+  margin-bottom: 3px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.roles-header {
+  background: var(--text);
+  padding: 10px 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.roles-header::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  background: var(--pink);
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.role-col {
+  padding: 18px 16px;
+  border-right: 1px solid var(--border);
+}
+.role-col:last-child { border-right: none; }
+
+.role-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 15px;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.role-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.role-item {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.role-item:last-child { border-bottom: none; }
+
+.role-item::before {
+  content: '→';
+  font-size: 10px;
+  color: var(--border);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.col-rytme .role-name { color: var(--orange); }
+.col-rytme .role-dot  { background: var(--orange); }
+.col-melodi .role-name { color: var(--blue); }
+.col-melodi .role-dot  { background: var(--blue); }
+.col-bass .role-name { color: var(--green); }
+.col-bass .role-dot  { background: var(--green); }
+.col-vokal .role-name { color: var(--pink); }
+.col-vokal .role-dot  { background: var(--pink); }
+
+/* ── FEEDBACK BOX ── */
+.feedback-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  margin-bottom: 3px;
+}
+
+.feedback-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.feedback-card-header {
+  background: var(--text);
+  padding: 10px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feedback-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.feedback-list { padding: 14px 18px; }
+
+.feedback-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.feedback-item:last-child { border-bottom: none; }
+
+.feedback-item-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+.feedback-item-text h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.feedback-item-text p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── DEBRIEF ── */
+.debrief {
+  background: var(--text);
+  border: 1px solid var(--border);
+  padding: 24px 28px;
+  margin-bottom: 3px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+
+.debrief-col h4 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--pink);
+  margin-bottom: 10px;
+}
+
+.debrief-q {
+  font-size: 12.5px;
+  color: rgba(242,237,230,0.7);
+  line-height: 1.65;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.debrief-q:last-child { border-bottom: none; }
+
+.debrief-q::before {
+  content: '↗ ';
+  font-size: 10px;
+  color: var(--pink);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+
+.topbar a {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s;
+}
+
+.topbar a:hover { color: var(--text); }
+
+.phase-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-decoration: none;
+  flex: 1;
+  padding: 10px 14px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  transition: background 0.15s;
+}
+
+.phase-link:last-child { border-right: none; }
+.phase-link:hover { background: rgba(255,255,255,0.06); }
+
+/* ── FOOTER ── */
+.footer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footer-rule {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: var(--pink);
+}
+
+.footer-flow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.flow-step {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.flow-arrow { font-size: 14px; color: var(--muted); }
+
+.copyright {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.copyright p { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.header, .phasestrip, .recipe-step, .roles-section,
+.feedback-card, .debrief, .footer {
+  animation: fadeUp 0.4s ease both;
+}
+
+.recipe-step:nth-child(1) { animation-delay: 0.05s; }
+.recipe-step:nth-child(2) { animation-delay: 0.10s; }
+.recipe-step:nth-child(3) { animation-delay: 0.15s; }
+.recipe-step:nth-child(4) { animation-delay: 0.20s; }
+.recipe-step:nth-child(5) { animation-delay: 0.25s; }
+.recipe-step:nth-child(6) { animation-delay: 0.30s; }
+.recipe-step:nth-child(7) { animation-delay: 0.35s; }
+
+@media (max-width: 600px) {
+  .roles-grid { grid-template-columns: 1fr 1fr; }
+  .role-col:nth-child(2) { border-right: none; }
+  .role-col:nth-child(1),
+  .role-col:nth-child(2) { border-bottom: 1px solid var(--border); }
+  .feedback-section { grid-template-columns: 1fr; }
+  .debrief { grid-template-columns: 1fr; gap: 16px; }
+  .footer { flex-direction: column; align-items: flex-start; }
+  .phasestrip { flex-wrap: wrap; }
+  .phase { flex: 0 0 50%; border-bottom: 1px solid rgba(255,255,255,0.1); }
+}
+</style>
+</head>
+<body>
+<div class="poster">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="samspillsmetodikk.html">← Tilbake til oversikt</a>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-tag">Samspill · Steg 3 av 3</div>
+    <h1>Nå spiller<span>vi sammen.</span></h1>
+    <p>Dere har lyttet til og hermet etter musikken, og øvd på hver deres instrument. Nå handler det om å sette det sammen, lytte til hverandre – og la musikken bli noe mer enn summen av delene.</p>
+  </div>
+
+  <!-- PHASE STRIP -->
+  <div class="phasestrip">
+    <a class="phase-link" href="bandstart-metodikk.html">
+      <span class="phase-num" style="color:var(--muted)">①</span>
+      <span class="phase-label">Lytt & nynn</span>
+    </a>
+    <a class="phase-link" href="individuell-oving.html">
+      <span class="phase-num" style="color:var(--muted)">②</span>
+      <span class="phase-label">Øv alene</span>
+    </a>
+    <a class="phase-link" href="samspill-bandoving.html">
+      <span class="phase-num" style="color:var(--pink)">③</span>
+      <span class="phase-label" style="color:rgba(255,255,255,0.9)">Samspill</span>
+    </a>
+  </div>
+
+  <!-- RECIPE STEPS -->
+  <div class="recipe">
+
+    <div class="recipe-step s1">
+      <div class="recipe-step-num">1</div>
+      <div class="recipe-step-body">
+        <div class="recipe-step-header">
+          <span class="recipe-step-title">Start med grooven – ikke låten</span>
+          <span class="recipe-tag">Oppstart</span>
+        </div>
+        <p class="recipe-step-desc">Ikke begynn med å spille låten fra starten. Start med for eksempel refrenget. Begynn med å få det rytmiske på plass: trommis starter med å spille trommerytmen, så kobler bassist seg på mens resten lytter seg inn.</p>
+        <p class="recipe-step-tip">Spill gjerne 8–16 takter med bare groove, uten melodi eller akkorder, til pulsen sitter felles i rommet.</p>
+      </div>
+    </div>
+
+    <div class="recipe-step s2">
+      <div class="recipe-step-num">2</div>
+      <div class="recipe-step-body">
+        <div class="recipe-step-header">
+          <span class="recipe-step-title">Legg til én stemme om gangen</span>
+          <span class="recipe-tag">Oppbygging</span>
+        </div>
+        <p class="recipe-step-desc">Trommer → bass → komp (gitar/keys) → melodi/vokal. Hver ny stemme lytter seg inn i det som allerede spiller. Ikke alle på én gang – det gjør det umulig å høre hvordan det låter.</p>
+        <p class="recipe-step-tip">Den som legger seg sist på har et ekstra ansvar: lytte til helheten og tilpasse styrkegrad til det som allerede er der.</p>
+      </div>
+    </div>
+
+    <div class="recipe-step s3">
+      <div class="recipe-step-num">3</div>
+      <div class="recipe-step-body">
+        <div class="recipe-step-header">
+          <span class="recipe-step-title">Spill gjennom en gang uten å stoppe</span>
+          <span class="recipe-tag">Flyt</span>
+        </div>
+        <p class="recipe-step-desc">Spill låten fra start til slutt uten å avbryte. Ikke stopp selv om noen spiller feil. I et band er det viktigere å holde pulsen og strukturen enn å få alle noter rett.</p>
+        <p class="recipe-step-tip">Husk: å stoppe bremser alle, ikke bare deg selv. Hold tritt med bandet.</p>
+      </div>
+    </div>
+
+    <div class="recipe-step s4">
+      <div class="recipe-step-num">4</div>
+      <div class="recipe-step-body">
+        <div class="recipe-step-header">
+          <span class="recipe-step-title">Identifiser hva som ikke sitter</span>
+          <span class="recipe-tag">Analyse</span>
+        </div>
+        <p class="recipe-step-desc">Etter gjennomkjøringen: hva skurret? Snakk om det konkret og konstruktivt. Var det en overgang? Et tempo-smell? En del der noen kom inn feil? Velg <em>ett</em> problem om gangen – ikke reparer alt på en gang.</p>
+        <p class="recipe-step-tip">Bruk «jeg opplevde»-språk fremfor «du spilte feil». Det holder fokus på musikken, ikke på personen.</p>
+      </div>
+    </div>
+
+    <div class="recipe-step s5">
+      <div class="recipe-step-num">5</div>
+      <div class="recipe-step-body">
+        <div class="recipe-step-header">
+          <span class="recipe-step-title">Øv på problempartiet sammen</span>
+          <span class="recipe-tag">Fokusøving</span>
+        </div>
+        <p class="recipe-step-desc">Konsentrer dere om den delen eller overgangen som ikke sitter og jobb bare med den – akkurat slik du øvde individuelt, men nå som gruppe. Spill sakte, legg til én stemme om gangen, bygg opp igjen. Koble så tilbake til helheten.</p>
+        <p class="recipe-step-tip">Å øve én detalj grundig i bandet er mer effektivt enn å spille gjennom låten ti ganger og håpe det løser seg.</p>
+      </div>
+    </div>
+
+    <div class="recipe-step s6">
+      <div class="recipe-step-num">6</div>
+      <div class="recipe-step-body">
+        <div class="recipe-step-header">
+          <span class="recipe-step-title">Ta opp bandet og lytt</span>
+          <span class="recipe-tag">Lytting</span>
+        </div>
+        <p class="recipe-step-desc">Spill inn en gjennomkjøring på mobilen og lytt til opptaket sammen. Det dere hører som lyttere er ikke det samme som det dere hørte mens dere spilte – opptaket avslører hva som er for høyt, om noen henger etter, og hva som faktisk låter bra.</p>
+        <p class="recipe-step-tip">Er basstromme og bass samspilt? Bytter vi akkorder samtidig? Hører vi melodien? Er det noen som «forsvinner» i miksen?</p>
+      </div>
+    </div>
+
+    <div class="recipe-step s7">
+      <div class="recipe-step-num">7</div>
+      <div class="recipe-step-body">
+        <div class="recipe-step-header">
+          <span class="recipe-step-title">Spill gjennom en gang til – med innlevelse</span>
+          <span class="recipe-tag">Avslutning</span>
+        </div>
+        <p class="recipe-step-desc">Avslutt alltid øvingen med én gjennomkjøring der fokuset er å nyte det dere har lært – ikke å rette feil. Musikk er ikke bare et produkt, det er en opplevelse mens det skjer. Dere fortjener å kjenne at det faktisk låter.</p>
+        <p class="recipe-step-tip">Denne runden er ikke en test. Den er grunnen til at dere øver.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROLES -->
+  <div class="roles-section">
+    <div class="roles-header">Hva lytter du etter – din rolle i bandet</div>
+    <div class="roles-grid">
+
+      <div class="role-col col-rytme">
+        <div class="role-name"><span class="role-dot"></span>Trommer</div>
+        <div class="role-item">Hold tempoet stabilt – du er bandets puls</div>
+        <div class="role-item">Tell opp i rett tempo – da starter dere rett.</div>
+        <div class="role-item">Lytt til bassisten – dere er rytmeseksjonen</div>
+        <div class="role-item">Gi tydelige signal ved overganger (fill, crash)</div>
+        <div class="role-item">Spill for musikken, ikke for deg selv</div>
+      </div>
+
+      <div class="role-col col-bass">
+        <div class="role-name"><span class="role-dot"></span>Bass</div>
+        <div class="role-item">Treff basstrommen – dere er fundamentet</div>
+        <div class="role-item">Følg akkordskiftene i besifringen</div>
+        <div class="role-item">Varier med noen melodiske overganger mellom basstonene</div>
+        <div class="role-item">Men unngå å spille for mye - grooven er nok</div>
+      </div>
+
+      <div class="role-col col-melodi">
+        <div class="role-name"><span class="role-dot"></span>Gitar / Keys</div>
+        <div class="role-item">Pass på volum – komp skal støtte, ikke dominere</div>
+        <div class="role-item">Kjenn akkordskiftene i kroppen før hånden</div>
+        <div class="role-item">Lytt til vokalen – følg fraseringen</div>
+        <div class="role-item">Veksle mellom å drive og å støtte</div>
+      </div>
+
+      <div class="role-col col-vokal">
+        <div class="role-name"><span class="role-dot"></span>Vokal / Melodi</div>
+        <div class="role-item">Du er ansiktet til musikken – hold kontakt med rommet</div>
+        <div class="role-item">Lytt til komp og bass – ikke bare deg selv</div>
+        <div class="role-item">Hold frasen levende, ikke mekanisk</div>
+        <div class="role-item">Tør å synge ut – nynning er ikke nok i band</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div class="feedback-section">
+
+    <div class="feedback-card">
+      <div class="feedback-card-header">
+        <span class="feedback-dot" style="background:var(--green)"></span>
+        Gi konstruktive tilbakemeldinger
+      </div>
+      <div class="feedback-list">
+        <div class="feedback-item">
+          <span class="feedback-item-icon">✅</span>
+          <div class="feedback-item-text">
+            <h4>Vær konkret</h4>
+            <p>«Overgangen til refrenget kom litt tidlig» er nyttig. «Det låt dårlig» er ikke nyttig.</p>
+          </div>
+        </div>
+        <div class="feedback-item">
+          <span class="feedback-item-icon">✅</span>
+          <div class="feedback-item-text">
+            <h4>Bruk «jeg hørte»</h4>
+            <p>Fokus på det musikalske, ikke på personen. «Jeg hørte at tempoet gikk ned» – ikke «du henger etter».</p>
+          </div>
+        </div>
+        <div class="feedback-item">
+          <span class="feedback-item-icon">✅</span>
+          <div class="feedback-item-text">
+            <h4>Si hva som fungerte først</h4>
+            <p>Hva låt bra? Det er like viktig å vite som hva som ikke satt.</p>
+          </div>
+        </div>
+        <div class="feedback-item">
+          <span class="feedback-item-icon">✅</span>
+          <div class="feedback-item-text">
+            <h4>Ett problem om gangen</h4>
+            <p>Velg det viktigste og jobb med det. Ikke reparer alt på én gang.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback-card">
+      <div class="feedback-card-header">
+        <span class="feedback-dot" style="background:var(--orange)"></span>
+        Samspillsfeller – hold øye med disse
+      </div>
+      <div class="feedback-list">
+        <div class="feedback-item">
+          <span class="feedback-item-icon">⚠️</span>
+          <div class="feedback-item-text">
+            <h4>Alle spiller for høyt</h4>
+            <p>Skru ned – samspill handler om å høre hverandre, ikke overdøve.</p>
+          </div>
+        </div>
+        <div class="feedback-item">
+          <span class="feedback-item-icon">⚠️</span>
+          <div class="feedback-item-text">
+            <h4>Ingen lytter – alle fokuserer på seg selv</h4>
+            <p>Løft blikket. Musikk skapes i rommet mellom dere, ikke i hodet ditt.</p>
+          </div>
+        </div>
+        <div class="feedback-item">
+          <span class="feedback-item-icon">⚠️</span>
+          <div class="feedback-item-text">
+            <h4>Stopper ved første feil</h4>
+            <p>Hold pulsen. Øv på å spille gjennom – det er en egen ferdighet.</p>
+          </div>
+        </div>
+        <div class="feedback-item">
+          <span class="feedback-item-icon">⚠️</span>
+          <div class="feedback-item-text">
+            <h4>Tempoet øker eller sakker</h4>
+            <p>Trommis: hold deg til pulsen du satte. Alle andre: lytt til trommene.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DEBRIEF -->
+  <div class="debrief">
+    <div class="debrief-col">
+      <h4>Etter øvingen – snakk om dette</h4>
+      <div class="debrief-q">Hva låt bedre enn sist?</div>
+      <div class="debrief-q">Hva er det ene vi skal jobbe mer med?</div>
+      <div class="debrief-q">Hvem trenger å øve mer individuelt?</div>
+    </div>
+    <div class="debrief-col">
+      <h4>Til neste øving</h4>
+      <div class="debrief-q">Hvilken del tar vi tak i først?</div>
+      <div class="debrief-q">Er det noen akkorder eller rytmer vi bør forenkle?</div>
+      <div class="debrief-q">Ta opp og lytte til opptaket hjemme?</div>
+    </div>
+    <div class="debrief-col">
+      <h4>Husk alltid</h4>
+      <div class="debrief-q">Helheten i samspillet er viktigere enn enkeltnoter</div>
+      <div class="debrief-q">Å lytte er en aktiv handling</div>
+      <div class="debrief-q">Bandet låter godt når alle spiller for musikken og ikke bare for seg selv</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-rule">Musikk skapes mellom dere – ikke i hodet ditt.</div>
+    <div class="footer-flow">
+      <span class="flow-step">Groove</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Bygg opp</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Spill gjennom</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Analyser</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Øv fokusert</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step" style="color:var(--pink)">Nyt det ⚡</span>
+    </div>
+  </div>
+
+  <div class="copyright">
+    <p><a href="index.html" style="color:var(--muted); text-decoration:none; border-bottom: 1px solid var(--border);">← Tilbake til hovedside</a> &nbsp;·&nbsp; <a href="samspillsmetodikk.html" style="color:var(--muted); text-decoration:none; border-bottom: 1px solid var(--border);">Samspillsmetodikk</a> &nbsp;·&nbsp; Musikk · Ungdomstrinnet</p>
+    <p>
+      <a href="https://github.com/p4m4rt1" target="_blank" rel="noopener noreferrer">Paul Marti</a>
+      &nbsp;·&nbsp;
+      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
+      &nbsp;·&nbsp;
+      Innhold utviklet med hjelp av kunstig intelligens (Claude, Anthropic)
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
